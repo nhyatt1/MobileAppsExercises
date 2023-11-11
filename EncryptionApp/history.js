@@ -25,7 +25,7 @@ export default function HistoryScreen ({navigation}) {
             {text: 'Cancel', onPress:()=>{console.log('Cancel Pressed')}, style: 'cancel'}
     ]);
     
-
+//when this returns and you delete the list, i send the user back home because the visual check confirm doesn't reset unless you go to homepage
     return (
         <View style={styles.container}>
             <Text style={{fontSize: 25, fontWeight: 'bold', color: 'black', textAlign: 'center'}}>Here is your history of messages ciphered</Text>
