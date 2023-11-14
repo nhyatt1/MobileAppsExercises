@@ -10,13 +10,15 @@ const historySlice = createSlice({
     },
     
     reducers: {
+        //numciphered is used to determine the id in cipher.js
         numCipheredIncrement: state => {
             state.numCiphered += 1;
         },
-
-        numCipheredReset: state => {
-            state.numCiphered = 0;
+        numCipheredDecrement: state => {
+            state.numCiphered -= 1;
         },
+
+        
 
         addMessages: (state, action) => {
             state.messages.push(action.payload);
@@ -24,11 +26,8 @@ const historySlice = createSlice({
         removeMessage: (state, action) => {
             state.messages = state.messages.filter(item => item.id !== action.payload);
         },
-        clearMessages: state => {
-            state.messages = [];
-        }
     }
 });
 
-export const { numCipheredIncrement, numCipheredReset, addMessages, removeMessage, clearMessages } = historySlice.actions;
+export const { numCipheredIncrement, numCipheredDecrement, addMessages, removeMessage } = historySlice.actions;
 export default historySlice.reducer;

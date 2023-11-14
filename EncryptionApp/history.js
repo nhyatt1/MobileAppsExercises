@@ -1,7 +1,7 @@
-import { Text, View, Button, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { Text, View, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { styles } from './styles.js';
 import { useSelector, useDispatch } from 'react-redux';
-import { removeMessage } from './slices.js';
+import { removeMessage, numCipheredDecrement } from './slices.js';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { AntDesign } from '@expo/vector-icons'; 
 
@@ -12,6 +12,8 @@ export default function HistoryScreen ({navigation}) {
     const deleteMultipleKeys = () =>{
         for (let i = 0; i < selectedKeys.length; i++){
             dispatch(removeMessage(selectedKeys[i]));
+            //Added this in Exercise 4 so that ID logs lower after deleting messages, should have thought of this sooner, though it does not really mess with functionality i don't think.
+            dispatch(numCipheredDecrement())
         }
         selectedKeys = [];
     }
@@ -31,25 +33,23 @@ export default function HistoryScreen ({navigation}) {
             <Text style={{fontSize: 25, fontWeight: 'bold', color: 'black', textAlign: 'center'}}>Here is your history of messages ciphered</Text>
             <Text style={{fontSize: 15, textAlign: 'center'}}>Press on the message to see its details.</Text>
             <Text style={{fontSize: 15, marginTop: 10, textAlign: 'center'}}>If you want to delete multiple messages from the history, select the checkboxes and press the trash button. YOU WILL BE SENT BACK HOME</Text>
-            <AntDesign.Button name='enter'
-                onPress ={() => {navigation.navigate('Home'); 
-                }}>
-                    Back Home
-                </AntDesign.Button>
+            <AntDesign.Button name='delete'
+                onPress ={buttonConfirmation}
+            >DELETE</AntDesign.Button>
             <FlatList
                 style={{marginTop: 10}}
                 data = {messages}
                 extraData={messages.state}
                 renderItem ={( item ) => (
                     <TouchableOpacity
-                        onPress={ () => {navigation.navigate('Details', {detailID: item.index})} }> 
+                        onPress={ () => {{navigation.navigate('Details', {detailID: item.index}); console.log(selectedKeys.length)}} }> 
                         <View style={{flexDirection: 'row', marginBottom: 25}}>
                         <BouncyCheckbox
-                            size={25}
+                            size={35}
                             fillColor="#857b69"
                             unfillColor="#F0F0F0"
                             iconStyle={{ borderColor: "#857b69" }}
-                            innerIconStyle={{ borderWidth: 1 }}
+                            innerIconStyle={{ borderWidth: 2 }}
                             onPress={() => {{
                                 if(selectedKeys.includes(item.item.id)){
                                     if (selectedKeys.length == 1){
@@ -63,8 +63,8 @@ export default function HistoryScreen ({navigation}) {
                                     selectedKeys.push(item.item.id);
                                 }
                                 }}}/>
-                            <Text style={{fontSize: 20}}>
-                                Message: {item.item.message}
+                            <Text style={{fontSize: 20, marginTop: 5}}>
+                                Message: {item.item.result}
                             </Text>
                         </View>
                         
@@ -72,9 +72,11 @@ export default function HistoryScreen ({navigation}) {
                 )}
                 keyExtractor={(item, index) => index}
                 />
-            <AntDesign.Button name='delete'
-                onPress ={buttonConfirmation}
-            >DELETE</AntDesign.Button>
+            <AntDesign.Button name='enter'
+                onPress ={() => {navigation.navigate('Home'); 
+                }}>
+                    Back Home
+            </AntDesign.Button>
         </View>
       );
 }

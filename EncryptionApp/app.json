@@ -28,7 +28,13 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-location",
+        {
+        "locationAlwaysAndWhenInUsePermission": "Allow Math Quiz to use your location."
+        }
+      ]
     ]
   }
 }

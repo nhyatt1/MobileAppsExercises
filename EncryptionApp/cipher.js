@@ -1,36 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Text, View, Image, Button, TextInput } from 'react-native';
 import { styles } from './styles.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { numCipheredIncrement, addMessages } from './slices.js';
-import Slider from '@react-native-community/slider';
-import { AntDesign } from '@expo/vector-icons'; 
+import { AntDesign } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 
-
-export default function CipherScreen({navigation}){
+export default function HomeScreen({navigation}){
   //Cipher screen is returned with an image, two textinputs, 3 buttons, and 2 sections of text. 
-  const [message, setMessage] = useState('');
-  const [key, setKey] = useState('1');
-  const shift = parseInt(key, 10);
-  const [ciphered, setCiphered] = useState('');
   const dispatch = useDispatch();
+  const [message, setMessage] = useState('');
+
+  const [ciphered, setCiphered] = useState('');
   const numCiphered = useSelector((state) => state.history.numCiphered);
-  const [slider, setSlider] = useState (1);
+
+  const [location, setLocation] = useState(null);
+  const [locMessage, setLocMessage] = useState('Waiting...');
   
-  let accShift = 1;
+  let accShift = 0;
+  // console.log(Math.round("latitude * 10000", location.coords.latitude * 10000));
+  // console.log(Math.round("longitude * 10000", location.coords.longitude * 10000));
+  useEffect(() => {
+    (async () => {
+    
+      let { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        setLocMessage('Permission to access location was denied');
+        return;
+      }
 
-  // function isValidKey(key) {
-  //   //Function to ensure a user enters a valid key (will most likely be irrelevant when a slider is implemented.)
-  //   const isValid = /^\d{1,2}$/.test(key.trim());
-  //   const parsedKey = parseInt(key, 10);
-  //   return isValid && !isNaN(parsedKey) && parsedKey >= 1 && parsedKey <= 25;
-  // }
+      let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest})
+        setLocation(location);
+        setLocMessage(JSON.stringify(location));
+        })()
+      },
+    []
+  );
 
-  function caesarCipher(text, index, direction){
+  function caesarCipher(text){
     //Function to cipher a message, uses charCodes. 
     let cipheredText = '';
-    accShift = index % 26;
-    if (direction == 1) {
+    let latitude = parseInt(location.coords.latitude * 10000);
+    let longitude = parseInt(location.coords.longitude * 10000);
+
+    accShift = Math.abs((latitude + longitude) % 26);
+
+    console.log("latitude: ", latitude);
+    console.log("longitude: ", longitude);
+    console.log("accShift: ", accShift);
+
       //encryption
       for (let i=0; i < text.length; i++){
         if(text.charCodeAt(i) >= 65 && text.charCodeAt(i) <= 90){
@@ -58,40 +76,6 @@ export default function CipherScreen({navigation}){
           cipheredText += text.charAt(i);
         }
       }
-    }
-    else if (direction == -1) {
-      //decryption
-      for (let i=0; i < text.length; i++) {
-        if ((text.charCodeAt(i) + accShift == text.charCodeAt(i)) && accShift != 0){
-          setCiphered('You must enter a number for your key!');
-          return; 
-        }
-        if(text.charCodeAt(i) >= 65 && text.charCodeAt(i) <= 90){
-          //uppercase alphabet decryption
-          if((text.charCodeAt(i) - accShift) < 65){
-            //for shifts that wrap to end of alphabet
-            cipheredText += String.fromCharCode(91 - (65 % (text.charCodeAt(i) - accShift)));
-          }
-          else{
-            //concatenates any non alphabet letter back to the decrypted message.
-            cipheredText += String.fromCharCode(text.charCodeAt(i) - accShift);
-          }
-        }
-        else if(text.charCodeAt(i) >= 97 && text.charCodeAt(i) <= 122){
-          //lowercase alphabet decryption by caesar cipher
-          if ((text.charCodeAt(i) - accShift) < 97){
-            //for shifts that wrap to end of alphabet
-            cipheredText += String.fromCharCode(123 - (97 % (text.charCodeAt(i) - accShift)));
-          }
-          else{
-            cipheredText += String.fromCharCode(text.charCodeAt(i) - accShift);
-          }
-        }
-        else{
-          cipheredText += text.charAt(i);
-        }
-      }
-    }
     return cipheredText;
   }
 
@@ -108,44 +92,19 @@ export default function CipherScreen({navigation}){
           style={{width: 300, height: 25, backgroundColor: '#857b69', color: 'white'}}
           onChangeText={text => setMessage(text)}
           />
-          <Text style={{textAlign: 'center', marginTop: 15}}>
-            Move the slider to change your encryption key:
-          </Text>
-          <Slider 
-            style={{width: 300, height: 10, marginTop: 20, marginBottom: 20}}
-            minimumValue={1}
-            maximumValue={25}
-            onValueChange={(data) => {setKey(data); setSlider(data)}}
-            step={1}
-            minimumTrackTintColor="#857b69"
-            maximumTrackTintColor="#F0F0F0"
-
-          />
-          <Text style={{textAlign: 'center'}}>
-          Current value: {slider}
-          </Text>
         </View>
         
-        {/* <View style={{marginBottom: 10}}>
-          <TextInput placeholder= 'Enter your encryption key (1-25).' 
-          style={{width: 300, height: 25, backgroundColor: '#857b69', color: 'white'}}
-          onChangeText={text => setKey(text)}
-          />
-        </View>    */}
         <View style={{flexDirection: 'row', marginBottom: 20}}>
-        {/*Buttons will encrypt or decrypt user's message respectively, 
-        and dispatch the messages to the history slice/reducer/store, adding them to an array of objects.
+        {/*Buttons will encrypt user's message and dispatch the messages 
+        to the history slice/reducer/store, adding them to an array of objects.
         Each time the button is pressed this occurs.*/}
           <AntDesign.Button name='arrowup' style={{marginRight: 10}} 
-          color={message == '' ? 'gray' : '#89CFF0'}
+          color={message == '' ? 'gray' : '#FFFFFF'}
           onPress={() => {
-            setCiphered(caesarCipher(message, key, 1));
-            let temp = caesarCipher(message, key, 1);
+            setCiphered(caesarCipher(message));
+            let temp = caesarCipher(message);
             dispatch(addMessages(
               { id: numCiphered,
-                message: message,
-                shift: shift,
-                type:"Encryption",
                 result: temp
               }));
             dispatch(numCipheredIncrement());
@@ -153,29 +112,11 @@ export default function CipherScreen({navigation}){
           disabled={ message == ''}>
             Encrypt
           </AntDesign.Button>
-          <Text> </Text>
-          <AntDesign.Button name='arrowdown'
-          color={message == '' ? 'gray' : '#89CFF0'}
-          onPress={() => {
-            setCiphered(caesarCipher(message, shift, -1));
-            let temp = caesarCipher(message, shift, -1)
-            dispatch(addMessages(
-              { id: numCiphered,
-                message: message,
-                shift: shift,
-                type:"Decryption",
-                result: temp
-              }));
-            dispatch(numCipheredIncrement());
-          }}
-          disabled={ message == ''}>
-            Decrypt
-          </AntDesign.Button>
         </View>
-        <Text style={{marginBottom: 10}}>
-          Your message will appear here: {ciphered}
+        <Text style={{marginBottom: 10, textAlign:"center"}}>
+          {"\n"}Your ciphered message will appear here: {ciphered}
         </Text>
-        {/*Takes user to the History Page. */}
+
         <AntDesign.Button name='book'
           onPress ={() => navigation.navigate('History')}>
             Go to History

@@ -1,37 +1,89 @@
-import { View, Button, Text, Alert } from 'react-native';
+import { View, Button, Text } from 'react-native';
 import { styles } from './styles.js';
-import { useDispatch, useSelector } from 'react-redux';
-import { removeMessage } from './slices.js';
+import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
 import { AntDesign } from '@expo/vector-icons'; 
+import * as Location from 'expo-location';
 
 export default function DetailsScreen ({route, navigation}) {
-    const dispatch = useDispatch();
     const messages = useSelector((state) => state.history.messages);
-    const buttonConfirmation = () =>
-    Alert.alert('ARE YOU SURE?', 'If you delete this message, it will not be recoverable. YOU WILL BE SENT BACK HOME', [
-        {text: 'Confirm', onPress:()=>{console.log('Confirm Pressed'); navigation.navigate('History'); dispatch(removeMessage(messages[route.params.detailID].id)); }},
-        {text: 'Cancel', onPress:()=>{console.log('Cancel Pressed')}, style: 'cancel'}
-    ]);
+    const [decryptedMessage, setDecryptedMessage] = useState('');
+    const [location, setLocation] = useState(null);
+    const [locMessage, setLocMessage] = useState('Waiting...');
+    let accShift = 0;
+
+    useEffect(() => {
+        (async () => {
+        
+            let { status } = await Location.requestForegroundPermissionsAsync()
+            if (status !== 'granted') {
+            setLocMessage('Permission to access location was denied');
+            return;
+            }
+    
+            let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest})
+            setLocation(location);
+            setLocMessage(JSON.stringify(location));
+            })()
+            },[]);
+
+    function caesarCipher(text){
+        //Function to cipher a message, uses charCodes. 
+        let cipheredText = '';
+        let latitude = parseInt(location.coords.latitude * 10000);
+        let longitude = parseInt(location.coords.longitude * 10000);
+
+        accShift = Math.abs((latitude + longitude) % 26);
+        console.log("latitude: ", latitude);
+        console.log("longitude: ", longitude);
+        console.log("accShift: ", accShift);
+          //decryption
+          for (let i=0; i < text.length; i++) {
+            if ((text.charCodeAt(i) + accShift == text.charCodeAt(i)) && accShift != 0){
+              setCiphered('You must enter a number for your key!');
+              return; 
+            }
+            if(text.charCodeAt(i) >= 65 && text.charCodeAt(i) <= 90){
+              //uppercase alphabet decryption
+              if((text.charCodeAt(i) - accShift) < 65){
+                //for shifts that wrap to end of alphabet
+                cipheredText += String.fromCharCode(91 - (65 % (text.charCodeAt(i) - accShift)));
+              }
+              else{
+                //concatenates any non alphabet letter back to the decrypted message.
+                cipheredText += String.fromCharCode(text.charCodeAt(i) - accShift);
+              }
+            }
+            else if(text.charCodeAt(i) >= 97 && text.charCodeAt(i) <= 122){
+              //lowercase alphabet decryption by caesar cipher
+              if ((text.charCodeAt(i) - accShift) < 97){
+                //for shifts that wrap to end of alphabet
+                cipheredText += String.fromCharCode(123 - (97 % (text.charCodeAt(i) - accShift)));
+              }
+              else{
+                cipheredText += String.fromCharCode(text.charCodeAt(i) - accShift);
+              }
+            }
+            else{
+              cipheredText += text.charAt(i);
+            }
+          }
+        return cipheredText;
+      }
 
     return(
         <View style={styles.container}> 
             <View style={styles.container}>
                 <Text style={{ fontSize: 25, fontWeight: 'bold', marginBottom: 20, color: 'black', textAlign: 'center'}}>
-                    Here are the details of this Cipher:
+                    Your message encrypted as: {messages[route.params.detailID].result}
                 </Text>
                     <View>
-                        <Text style={{marginBottom: 25}}>
-                            Your original message was: {messages[route.params.detailID].message}
-                            {"\n"}
-                            The Cipher key was: {messages[route.params.detailID].shift}
-                            {"\n"}
-                            Your Cipher type: {messages[route.params.detailID].type}
-                            {"\n"}
-                            The result was: {messages[route.params.detailID].result}
+                        <Text style={{marginBottom: 25, textAlign:"center"}}>
+                            Press the decrypt button to see your original message:{"\n"}{decryptedMessage}
                         </Text>
                     </View>
-                    <AntDesign.Button name='delete' onPress={buttonConfirmation}>
-                        DELETE?
+                    <AntDesign.Button name='arrowdown' onPress={() => {setDecryptedMessage(caesarCipher(messages[route.params.detailID].result))}}>
+                        Decrypt
                     </AntDesign.Button>
             </View>
             <View style={{marginTop: 60}}>
