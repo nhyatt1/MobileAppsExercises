@@ -21,14 +21,15 @@ export default function DetailsScreen ({route, navigation}) {
             return;
             }
     
-            let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest})
+            let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
             setLocation(location);
-            setLocMessage(JSON.stringify(location));
+            setLocMessage("Location retreived!");
             })()
             },[]);
 
     function caesarCipher(text){
         //Function to cipher a message, uses charCodes. 
+        console.log(location);
         let cipheredText = '';
         let latitude = parseInt(location.coords.latitude * 10000);
         let longitude = parseInt(location.coords.longitude * 10000);
@@ -79,10 +80,17 @@ export default function DetailsScreen ({route, navigation}) {
                 </Text>
                     <View>
                         <Text style={{marginBottom: 25, textAlign:"center"}}>
-                            Press the decrypt button to see your original message:{"\n"}{decryptedMessage}
+                            Press the decrypt button once your location updates to see the original message. You will only see the message if you are within 11m/36ft of where the message was originally encrypted.{"\n\n"}
+                            Location status: {locMessage}{"\n"}
+                            Decrypted Message: {decryptedMessage}
                         </Text>
                     </View>
-                    <AntDesign.Button name='arrowdown' onPress={() => {setDecryptedMessage(caesarCipher(messages[route.params.detailID].result))}}>
+                    <AntDesign.Button 
+                    name='arrowdown' 
+                    onPress={() => {setDecryptedMessage(caesarCipher(messages[route.params.detailID].result))}}
+                    color={ location == null ? 'gray' : '#FFFFFF' }
+                    disabled={location == null}
+                    >
                         Decrypt
                     </AntDesign.Button>
             </View>

@@ -22,16 +22,15 @@ export default function HomeScreen({navigation}){
   // console.log(Math.round("longitude * 10000", location.coords.longitude * 10000));
   useEffect(() => {
     (async () => {
-    
       let { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== 'granted') {
         setLocMessage('Permission to access location was denied');
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest})
+      let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
         setLocation(location);
-        setLocMessage(JSON.stringify(location));
+        setLocMessage("Location retreived!");
         })()
       },
     []
@@ -40,6 +39,7 @@ export default function HomeScreen({navigation}){
   function caesarCipher(text){
     //Function to cipher a message, uses charCodes. 
     let cipheredText = '';
+
     let latitude = parseInt(location.coords.latitude * 10000);
     let longitude = parseInt(location.coords.longitude * 10000);
 
@@ -88,18 +88,22 @@ export default function HomeScreen({navigation}){
       source={require('./assets/Caesar.png')}/>
       {/*TextInputs for user's message and chosen cipher key.*/}
         <View>
-          <TextInput placeholder= 'Enter a message to cipher.' 
+          <TextInput placeholder= 'Enter a message to encrypt.' 
           style={{width: 300, height: 25, backgroundColor: '#857b69', color: 'white'}}
           onChangeText={text => setMessage(text)}
           />
         </View>
-        
+        <Text style={{textAlign: "center"}}>
+          Encrypt your message once your location loads.{"\n"}
+          Location Status: {locMessage}
+        </Text>
         <View style={{flexDirection: 'row', marginBottom: 20}}>
         {/*Buttons will encrypt user's message and dispatch the messages 
         to the history slice/reducer/store, adding them to an array of objects.
         Each time the button is pressed this occurs.*/}
+        
           <AntDesign.Button name='arrowup' style={{marginRight: 10}} 
-          color={message == '' ? 'gray' : '#FFFFFF'}
+          color={message == '' || location == null ? 'gray' : '#FFFFFF'}
           onPress={() => {
             setCiphered(caesarCipher(message));
             let temp = caesarCipher(message);
@@ -109,7 +113,7 @@ export default function HomeScreen({navigation}){
               }));
             dispatch(numCipheredIncrement());
           }}
-          disabled={ message == ''}>
+          disabled={ message == '' || location == null }>
             Encrypt
           </AntDesign.Button>
         </View>
