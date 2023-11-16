@@ -19,7 +19,7 @@ export default function App() {
             <Stack.Screen
               name="Home"
               component={MapScreen}
-              options={{title: 'Home Page'}}
+              options={{title: "I'm The Map!"}}
             />
           </Stack.Navigator>
         </NavigationContainer>

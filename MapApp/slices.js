@@ -1,33 +1,33 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const markerSlice = createSlice({
-    name: 'marker',
+const markersSlice = createSlice({
+    name: 'markers',
     initialState: {
         numMarkers: 0,
         //value is related to amount of Markers on map
-        messages: []
-        //message should import as an object: {id, title, description}         '
+        markerList: []
+        //message should import as an object: {id, location, title, description}
     },
     
     reducers: {
         //numciphered is used to determine the id in cipher.js
-        markerIncrement: state => {
+        numIncrement: state => {
             state.numMarkers += 1;
         },
-        markersDecrement: state => {
+        numDecrement: state => {
             state.numMarkers -= 1;
         },
 
         
 
-        addMessage: (state, action) => {
-            state.messages.push(action.payload);
+        addMarker: (state, action) => {
+            state.markerList.push(action.payload);
         },
-        removeMessage: (state, action) => {
-            state.messages = state.messages.filter(item => item.id !== action.payload);
+        removeMarker: (state, action) => {
+            state.markerList = state.markerList.filter(item => item.id !== action.payload);
         },
     }
 });
 
-export const { markerIncrement, markersDecrementDecrement, addMessage, removeMessage } = markerSlice.actions;
-export default markerSlice.reducer;
+export const { numIncrement, numDecrement, addMarker, removeMarker } = markersSlice.actions;
+export default markersSlice.reducer;
