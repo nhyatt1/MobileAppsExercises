@@ -1,8 +1,7 @@
   import { Button, StyleSheet, View, Text, TextInput, Alert } from 'react-native';
-  import { useState, useEffect, useRef } from 'react';
+  import { useState, useRef } from 'react';
   import { useDispatch, useSelector } from 'react-redux'
   import MapView from 'react-native-maps';
-  import * as Location from 'expo-location';
   import { Marker } from 'react-native-maps';
   import { AntDesign } from '@expo/vector-icons';
   import { numIncrement, numDecrement, addMarker, removeMarker } from './slices.js';
@@ -38,28 +37,6 @@
                 {text: 'No', onPress:()=>{console.log('Cancel Pressed')}, style: 'cancel'}])}/>  
       ))};
 
-      useEffect(() => {
-        (async () => {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-        return;
-        }
-        await Location.watchPositionAsync({
-        accuracy: Location.Accuracy.Highest,
-        distanceInterval: 3,
-        }, watchLocation);
-        })();
-        }, []);
-        
-      const watchLocation = (location) => {
-        const newRegion = {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          latitudeDelta: regionRef.latitudeDelta,
-          longitudeDelta: regionRef.longitudeDelta
-        }
-        setRegion(newRegion);
-      }
     
     const zoomChanges = (newRegion) => {
       setRegion (newRegion)
